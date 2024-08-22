@@ -33,20 +33,3 @@ jobs:
           bundler: latest
       - run: bundle exec rake test
 
-  gha-job-pt-test:
-    name: Ruby ${{ matrix.ruby }}, ${{ matrix.gemfile }}.gemfile
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        gemfile: [  'rails_7.0', 'rails_7.1', 'rails_7.2' ]
-        ruby: [ '3.0', '3.2' ]
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-      - name: Setup ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true # 'bundle install' and cache
-        env:
-          BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
