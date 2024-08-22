@@ -20,11 +20,14 @@ jobs:
       - name: Check if version changed
         id: check_version
         run: |
-          git diff HEAD^ HEAD -- lib/i18n_on_steroids/version.rb | grep '+VERSION' || echo "No version change"
-          if git diff HEAD^ HEAD -- lib/i18n_on_steroids/version.rb | grep '+VERSION'; then
+          git fetch origin master
+          OLD_VERSION=$(git show origin/master:lib/i18n_on_steroids/version.rb | grep 'VERSION =' | awk -F'"' '{print $2}')
+          NEW_VERSION=$(grep 'VERSION =' lib/i18n_on_steroids/version.rb | awk -F'"' '{print $2}')
+          echo "Old version: $OLD_VERSION"
+          echo "New version: $NEW_VERSION"
+          if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
-            new_version=$(grep 'VERSION' lib/i18n_on_steroids/version.rb | awk -F'"' '{print $2}')
-            echo "new_version=$new_version" >> $GITHUB_OUTPUT
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
