@@ -1,0 +1,9 @@
+en:
+  simple: "Hello, %{name}!"
+  with_pipes: "Count: ${count | number_with_delimiter}"
+  mixed: "Items: %{count | number_with_delimiter} | ${item | pluralize}"
+  complex: "Showing %{from} - %{to} of %{total | number_with_delimiter} ${item | pluralize:%{total}}"
+  unknown_pipe: "Unknown: ${value | unknown_pipe}"
+  missing_interpolation: "Missing: %{missing}"
+  regular_string: "I'm not screaming, ${'you are' | upcase}"
+  mixed_regular_and_interpolation: "Mixed: ${'value' | upcase} and %{count | number_with_delimiter}"

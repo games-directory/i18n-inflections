@@ -20,31 +20,47 @@ module I18nOnSteroids
     private
 
     def process_mixed_translation(translation, options)
-      parts = translation.split(/(%\{[^}]+\}|\$\{[^}]+\})/)
+      parts = translation.split(/(\$\{[^}]+\}|%\{[^}]+\})/)
       processed_parts = parts.map do |part|
-        if part.start_with?("%{") || part.start_with?("${")
+        if part.start_with?("${") || part.start_with?("%{")
           process_interpolation(part, options)
         else
           part
         end
       end
 
-      processed_parts.join.html_safe
+      processed_parts.join
     end
 
+    # rubocop:disable Metrics/MethodLength
     def process_interpolation(interpolation, options)
-      match_data = interpolation.match(/^(%\{|\$\{)([^}]+)\}$/)
+      match_data = interpolation.match(/^(\$\{|%\{)([^}]+)\}$/)
 
       return interpolation unless match_data
 
-      key, *pipes = match_data[2].split("|").map(&:strip)
-      value = options[key.to_sym]
+      content = match_data[2].strip
 
-      if value.nil?
-        interpolation
+      if content.start_with?("'") || content.start_with?('"')
+        # This is a regular string with pipes: ${'Hello' | upcase}
+        process_string_with_pipes(content)
       else
+        # This is a variable interpolation with pipes: ${name | upcase}
+        key, *pipes = content.split("|").map(&:strip)
+        value = options[key.to_sym]
+
+        return interpolation if value.nil?
+
         apply_pipes(value, pipes, options)
       end
+    end
+    # rubocop:enable Metrics/MethodLength
+
+    def process_string_with_pipes(content)
+      string, *pipes = content.split("|").map(&:strip)
+
+      # Remove quotes from the string
+      string = string[1...-1] if string.start_with?('"') || string.start_with?("'")
+      apply_pipes(string, pipes, {})
     end
 
     # rubocop:disable Metrics/MethodLength

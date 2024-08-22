@@ -1,21 +1,18 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "yaml"
 
 class TestI18nOnSteroids < Minitest::Test
   include ActionView::Helpers::NumberHelper
   include I18nOnSteroids::TranslationHelper
 
   def setup
-    @translations = {
-      simple: "Hello, %{name}!",
-      with_pipes: "Count: ${count | number_with_delimiter}",
-      mixed: "Items: %{count | number_with_delimiter} | ${item | pluralize}",
-      complex: "Showing %{from} - %{to} of %{total | number_with_delimiter} ${item | pluralize:%{total}}",
-      unknown_pipe: "Unknown: ${value | unknown_pipe}",
-      missing_interpolation: "Missing: %{missing}"
-    }
-    I18n.backend = TestI18nBackend.new(@translations)
+    fixture_file = File.join(File.dirname(__FILE__), "fixtures", "en.yml")
+    translations = YAML.load_file(fixture_file)
+
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations(:en, translations["en"])
   end
 
   def test_that_it_has_a_version_number
@@ -45,5 +42,13 @@ class TestI18nOnSteroids < Minitest::Test
 
   def test_missing_interpolation
     assert_equal "Missing: %{missing}", translate(:missing_interpolation)
+  end
+
+  def test_regular_string_with_pipes
+    assert_equal "I'm not screaming, YOU ARE", translate(:regular_string)
+  end
+
+  def test_mixed_regular_and_interpolation
+    assert_equal "Mixed: VALUE and 1,234", translate(:mixed_regular_and_interpolation, count: 1234)
   end
 end
