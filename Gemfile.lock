@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i18n_on_steroids (0.2.112)
+    i18n_on_steroids (0.2.11112)
 
 GEM
   remote: https://rubygems.org/
