@@ -47,6 +47,9 @@ module I18nOnSteroids
       end
     end
 
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
     def apply_pipes(value, pipes, options)
       pipes.reduce(value) do |result, pipe|
         case pipe
@@ -72,6 +75,9 @@ module I18nOnSteroids
           result
         end
       end
+      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/CyclomaticComplexity
     end
   end
 end

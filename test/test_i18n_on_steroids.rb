@@ -8,12 +8,12 @@ class TestI18nOnSteroids < Minitest::Test
 
   def setup
     @translations = {
-      simple: "Hello, %<name>s!",
+      simple: "Hello, %{name}!",
       with_pipes: "Count: ${count | number_with_delimiter}",
       mixed: "Items: %{count | number_with_delimiter} | ${item | pluralize}",
-      complex: "Showing %<from>s - %<to>s of %{total | number_with_delimiter} ${item | pluralize:%<total>s}",
+      complex: "Showing %{from} - %{to} of %{total | number_with_delimiter} ${item | pluralize:%{total}}",
       unknown_pipe: "Unknown: ${value | unknown_pipe}",
-      missing_interpolation: "Missing: %<missing>s"
+      missing_interpolation: "Missing: %{missing}"
     }
     I18n.backend = TestI18nBackend.new(@translations)
   end
@@ -44,6 +44,6 @@ class TestI18nOnSteroids < Minitest::Test
   end
 
   def test_missing_interpolation
-    assert_equal "Missing: %<missing>s", translate(:missing_interpolation)
+    assert_equal "Missing: %{missing}", translate(:missing_interpolation)
   end
 end
