@@ -1,0 +1,78 @@
+name: Publish and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check_version:
+    name: Check Version
+    runs-on: ubuntu-latest
+    outputs:
+      version_changed: ${{ steps.check_version.outputs.version_changed }}
+      new_version: ${{ steps.check_version.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check if version changed
+        id: check_version
+        run: |
+          git fetch origin master
+          OLD_VERSION=$(git show origin/master:lib/i18n_on_steroids/version.rb | grep 'VERSION =' | awk -F'"' '{print $2}')
+          NEW_VERSION=$(grep 'VERSION =' lib/i18n_on_steroids/version.rb | awk -F'"' '{print $2}')
+          echo "Old version: $OLD_VERSION"
+          echo "New version: $NEW_VERSION"
+          if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Debug output
+        run: |
+          echo "Version changed: ${{ steps.check_version.outputs.version_changed }}"
+          echo "New version: ${{ steps.check_version.outputs.new_version }}"
+
+  publish_and_release:
+    name: Publish and Release
+    needs: check_version
+    if: needs.check_version.outputs.version_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"  # Use the lowest supported version for publishing
+      - name: Publish to GPR
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          gem build *.gemspec
+          gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+        env:
+          GEM_HOST_API_KEY: "Bearer ${{secrets.GITHUB_TOKEN}}"
+          OWNER: ${{ github.repository_owner }}
+      # - name: Publish to RubyGems
+      #   run: |
+      #     mkdir -p $HOME/.gem
+      #     touch $HOME/.gem/credentials
+      #     chmod 0600 $HOME/.gem/credentials
+      #     printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+      #     gem build *.gemspec
+      #     gem push *.gem
+      #   env:
+      #     GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.check_version.outputs.new_version }}
+          release_name: Release ${{ needs.check_version.outputs.new_version }}
+          draft: false
+          prerelease: false

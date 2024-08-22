@@ -15,9 +15,6 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 3.0.0"
 
-  spec.add_dependency "actionview", "~> 7.1", ">= 6.1", "< 8"
-  spec.add_dependency "activesupport", "~> 7.1", ">= 6.1", "< 8"
-
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/games-directory/i18n_on_steroids"
   spec.metadata["changelog_uri"] = "https://github.com/games-directory/i18n_on_steroids/blob/master/CHANGELOG.md"
@@ -35,6 +32,14 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
+  # spec.add_dependency "activerecord", ">= 7.0"
+
+  spec.add_development_dependency "minitest", "~> 5.16"
+  spec.add_development_dependency "minitest-snapshots", "~> 1.1"
+  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rubocop", "~> 1.21"
+  spec.add_development_dependency "rubocop-minitest", "0.35.1"
+  spec.add_development_dependency "rubocop-packaging", "0.5.2"
+  spec.add_development_dependency "rubocop-performance", "1.21.1"
+  spec.add_development_dependency "rubocop-rake", "0.6.0"
 end
