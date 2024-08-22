@@ -1,7 +1,6 @@
-name: Ruby Gem
+name: Publish and Release
 
 on:
-  pull_request:
   push:
     branches:
       - master
@@ -29,17 +28,17 @@ jobs:
             echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
 
-  build:
+  publish:
     name: Publish
     needs: check_version
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        ruby: ["3.0", "3.1", "3.2", "3.3", "head"]
+    if: needs.check_version.outputs.version_changed == 'true'
     steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"  # Use the lowest supported version for publishing
       - name: Publish to GPR
         run: |
           mkdir -p $HOME/.gem
@@ -51,7 +50,6 @@ jobs:
         env:
           GEM_HOST_API_KEY: "Bearer ${{secrets.GITHUB_TOKEN}}"
           OWNER: ${{ github.repository_owner }}
-
       - name: Publish to RubyGems
         run: |
           mkdir -p $HOME/.gem
@@ -65,7 +63,7 @@ jobs:
 
   create_release:
     name: Create Release
-    needs: [check_version, build]
+    needs: [check_version, publish]
     runs-on: ubuntu-latest
     if: needs.check_version.outputs.version_changed == 'true'
     steps:
