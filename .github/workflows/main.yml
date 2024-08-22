@@ -17,45 +17,33 @@ jobs:
           ruby-version: "3.0"  # Use the lowest supported version for linting
           bundler-cache: true
       - run: bundle exec rubocop
-
   test:
-    name: "Test / Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
+    name: "Test / Ruby ${{ matrix.ruby }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - ruby: "3.0"
-            rails: "7.0"
+            gemfile: "ruby_3_0.gemfile"
           - ruby: "3.1"
-            rails: "7.0"
-          - ruby: "3.1"
-            rails: "7.1"
+            gemfile: "ruby_3_1_plus.gemfile"
           - ruby: "3.2"
-            rails: "7.0"
-          - ruby: "3.2"
-            rails: "7.1"
-          - ruby: "3.2"
-            rails: "7.2"
+            gemfile: "ruby_3_1_plus.gemfile"
           - ruby: "3.3"
-            rails: "7.0"
-          - ruby: "3.3"
-            rails: "7.1"
-          - ruby: "3.3"
-            rails: "7.2"
+            gemfile: "ruby_3_1_plus.gemfile"
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Set Gemfile and install dependencies
+      - name: Install dependencies
         env:
-          RAILS_VERSION: ${{ matrix.rails }}
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}
         run: |
-          if [ "${{ matrix.ruby }}" = "3.0" ]; then
-            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_0.gemfile" >> $GITHUB_ENV
-          else
-            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_1_plus.gemfile" >> $GITHUB_ENV
-          fi
-          bundle install
-      - run: bundle exec rake test
+          rm -f Gemfile.lock
+          bundle install --jobs 4 --retry 3
+      - name: Run tests
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}
+        run: bundle exec rake test
