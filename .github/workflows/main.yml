@@ -30,6 +30,14 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-          bundler: latest
+      - name: Set Gemfile
+        run: |
+          if [ "${{ matrix.ruby }}" = "3.0" ]; then
+            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_0.gemfile" >> $GITHUB_ENV
+          else
+            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_1_plus.gemfile" >> $GITHUB_ENV
+          fi
+      - name: Install dependencies
+        run: bundle install
       - run: bundle exec rake test
 
