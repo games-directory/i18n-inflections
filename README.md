@@ -44,6 +44,8 @@ In your view:
 ```
 
 ### Available Pipes
+The goal is to support all the ActionView::Helpers methods that make sense in a translation context.
+The following pipes are currently available:
 
 - `number_with_delimiter`: Formats numbers with thousands separators
 - `pluralize`: Pluralizes a word
@@ -78,7 +80,7 @@ To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/i18n_on_steroids. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/games-directory/i18n_on_steroids. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/games-directory/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b my-new-feature`)
@@ -86,10 +88,12 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/[USERN
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
+Please make sure to update/add any relevant tests and documentation before submitting your pull request. Also, `bundle exec rake` must pass without any failures.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
 ## Code of Conduct
 
-Everyone interacting in the I18nOnSteroids project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the I18nOnSteroids project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/games-directory/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).

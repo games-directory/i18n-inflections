@@ -10,6 +10,7 @@ require "i18n_on_steroids"
 class TestI18nBackend < I18n::Backend::Simple
   def initialize(translations)
     super()
+
     store_translations(:en, translations)
   end
 end
