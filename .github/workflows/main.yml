@@ -24,13 +24,13 @@ jobs:
       matrix:
         include:
           - ruby: "3.0"
-            gemfile: "ruby_3_0.gemfile"
+            gemfile: "ruby_3.0.gemfile"
           - ruby: "3.1"
-            gemfile: "ruby_3_1_plus.gemfile"
+            gemfile: "ruby_3_plus.gemfile"
           - ruby: "3.2"
-            gemfile: "ruby_3_1_plus.gemfile"
+            gemfile: "ruby_3_plus.gemfile"
           - ruby: "3.3"
-            gemfile: "ruby_3_1_plus.gemfile"
+            gemfile: "ruby_3_plus.gemfile"
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
