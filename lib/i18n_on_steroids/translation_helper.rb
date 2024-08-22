@@ -33,7 +33,7 @@ module I18nOnSteroids
     end
 
     def process_interpolation(interpolation, options)
-      match_data = interpolation.match(/^(\$\{|%\{)([^}]+)\}$/)
+      match_data = interpolation.match(/^(\$\{|%\{)([^}]+)}$/)
 
       return interpolation unless match_data
 
