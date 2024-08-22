@@ -12,7 +12,19 @@ Gem::Specification.new do |spec|
   spec.description = "A Ruby gem that enhances I18n functionality with advanced interpolation and piping features"
   spec.homepage = "https://github.com/games-directory/i18n_on_steroids"
   spec.license = "MIT"
+
   spec.required_ruby_version = ">= 3.0.0"
+
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.1')
+    spec.add_dependency "activesupport", "~> 6.1.0"
+    spec.add_dependency "actionview", "~> 6.1.0"
+  elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.2')
+    spec.add_dependency "activesupport", "~> 7.0.0"
+    spec.add_dependency "actionview", "~> 7.0.0"
+  else
+    spec.add_dependency "activesupport", "~> 7.1", ">= 6.1", "< 8"
+    spec.add_dependency "actionview", "~> 7.1", ">= 6.1", "< 8"
+  end
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/games-directory/i18n_on_steroids"

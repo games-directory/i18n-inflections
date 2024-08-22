@@ -2,6 +2,8 @@ PATH
   remote: .
   specs:
     i18n_on_steroids (0.2.0)
+      actionview (~> 7.1, >= 6.1, < 8)
+      activesupport (~> 7.1, >= 6.1, < 8)
 
 GEM
   remote: https://rubygems.org/
@@ -105,8 +107,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  actionview (~> 7)
-  activesupport (~> 7)
   i18n_on_steroids!
   minitest (~> 5.16)
   minitest-snapshots (~> 1.1)
