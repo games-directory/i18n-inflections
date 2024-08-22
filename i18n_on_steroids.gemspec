@@ -15,7 +15,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 3.0.0"
 
-  spec.add_dependency "activerecord", '>= 6.1'
+  spec.add_dependency "activesupport", ">= 7.0"
+  spec.add_dependency "actionview", ">= 7.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/games-directory/i18n_on_steroids"
