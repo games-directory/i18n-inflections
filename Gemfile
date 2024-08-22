@@ -3,8 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "actionview", "~> 7.2.0"
-gem "activesupport", "~> 7.2.0"
+gem "actionview", "~> 7"
+gem "activesupport", "~> 7"
 gem "minitest", "~> 5.16"
 gem "minitest-snapshots", "~> 1.1"
 gem "pry", "~> 0.14.2"
