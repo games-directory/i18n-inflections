@@ -9,5 +9,5 @@
 # Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
 
 module I18nOnSteroids
-  VERSION = "0.2.1"
+  VERSION = "0.2.112"
 end
