@@ -35,7 +35,7 @@ jobs:
           if [ "${{ matrix.ruby }}" = "3.0" ]; then
             echo "BUNDLE_GEMFILE=gemfiles/ruby_3_0.gemfile" >> $GITHUB_ENV
           else
-            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_1_plus.gemfile" >> $GITHUB_ENV
+            echo "BUNDLE_GEMFILE=gemfiles/ruby_3_plus.gemfile" >> $GITHUB_ENV
           fi
       - name: Install dependencies
         run: bundle install
