@@ -5,7 +5,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "minitest/autorun"
 require "active_support"
 require "action_view"
-require "i18n_on_steroids"
+require "i18n-inflections"
 
 class TestI18nBackend < I18n::Backend::Simple
   def initialize(translations)

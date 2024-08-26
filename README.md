@@ -1,13 +1,13 @@
-# I18nOnSteroids
+# I18nInflections
 
-I18nOnSteroids is a Ruby gem that enhances Rails' I18n functionality with advanced interpolation and piping features. It allows you to use more complex translation patterns directly in your locale files, reducing the need for view-specific formatting logic.
+I18nInflections is a Ruby gem that enhances Rails' I18n functionality with advanced interpolation and piping features. It allows you to use more complex translation patterns directly in your locale files, reducing the need for view-specific formatting logic.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'i18n_on_steroids'
+gem 'i18n-inflections'
 ```
 
 And then execute:
@@ -19,12 +19,12 @@ $ bundle install
 Or install it yourself as:
 
 ```bash
-$ gem install i18n_on_steroids
+$ gem install i18n-inflections
 ```
 
 ## Usage
 
-Once installed, I18nOnSteroids automatically enhances your Rails I18n functionality. You can use the following advanced features in your locale files:
+Once installed, I18nInflections automatically enhances your Rails I18n functionality. You can use the following advanced features in your locale files:
 
 ### Advanced Interpolation
 
@@ -80,7 +80,7 @@ To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/games-directory/i18n_on_steroids. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/games-directory/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/games-directory/i18n-inflections. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/games-directory/i18n-inflections/blob/main/CODE_OF_CONDUCT.md).
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b my-new-feature`)
@@ -96,4 +96,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the I18nOnSteroids project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/games-directory/i18n_on_steroids/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the I18nInflections project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/games-directory/i18n-inflections/blob/main/CODE_OF_CONDUCT.md).

@@ -3,9 +3,9 @@
 require "test_helper"
 require "yaml"
 
-class TestI18nOnSteroids < Minitest::Test
+class TestI18nInflections < Minitest::Test
   include ActionView::Helpers::NumberHelper
-  include I18nOnSteroids::TranslationHelper
+  include I18nInflections::Translate
 
   def setup
     fixture_file = File.join(File.dirname(__FILE__), "fixtures", "en.yml")
@@ -16,7 +16,7 @@ class TestI18nOnSteroids < Minitest::Test
   end
 
   def test_that_it_has_a_version_number
-    refute_nil ::I18nOnSteroids::VERSION
+    refute_nil ::I18nInflections::VERSION
   end
 
   def test_simple_translation
