@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-require_relative "lib/i18n_on_steroids/version"
+require_relative "lib/i18n-inflections/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "i18n_on_steroids"
-  spec.version = I18nOnSteroids::VERSION
+  spec.name = "i18n-inflections"
+  spec.version = I18nInflections::VERSION
   spec.authors = ["pacMakaveli"]
   spec.email = ["oss@studio51.solutions"]
 
   spec.summary = "A gem that provides advanced interpolation and piping features for Rails I18n"
   spec.description = "A Ruby gem that enhances I18n functionality with advanced interpolation and piping features"
-  spec.homepage = "https://github.com/games-directory/i18n_on_steroids"
+  spec.homepage = "https://github.com/games-directory/i18n-inflections"
   spec.license = "MIT"
 
   spec.required_ruby_version = ">= 3.0.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/games-directory/i18n_on_steroids"
-  spec.metadata["changelog_uri"] = "https://github.com/games-directory/i18n_on_steroids/blob/master/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/games-directory/i18n-inflections"
+  spec.metadata["changelog_uri"] = "https://github.com/games-directory/i18n-inflections/blob/master/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

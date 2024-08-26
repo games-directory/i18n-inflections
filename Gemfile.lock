@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i18n_on_steroids (0.2.0)
+    i18n-inflections (0.2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -53,7 +53,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  i18n_on_steroids!
+  i18n-inflections!
   minitest (~> 5.16)
   minitest-snapshots (~> 1.1)
   rake (~> 13.0)

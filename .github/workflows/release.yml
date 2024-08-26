@@ -20,8 +20,8 @@ jobs:
         id: check_version
         run: |
           git fetch origin master
-          OLD_VERSION=$(git show origin/master:lib/i18n_on_steroids/version.rb | grep 'VERSION =' | awk -F'"' '{print $2}')
-          NEW_VERSION=$(grep 'VERSION =' lib/i18n_on_steroids/version.rb | awk -F'"' '{print $2}')
+          OLD_VERSION=$(git show origin/master:lib/i18n-inflections/version.rb | grep 'VERSION =' | awk -F'"' '{print $2}')
+          NEW_VERSION=$(grep 'VERSION =' lib/i18n-inflections/version.rb | awk -F'"' '{print $2}')
           echo "Old version: $OLD_VERSION"
           echo "New version: $NEW_VERSION"
           if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
