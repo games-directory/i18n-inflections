@@ -3,6 +3,20 @@
 module I18nOnSteroids
   module TranslationHelper
     def translate(key, **options)
+      return process_translation(key, options) if options.key?(:count) || options.key?(:scope)
+      
+      cache_key = "i18n_enhanced:#{key}:#{options.hash}"
+
+      Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+        process_translation(key, options)
+      end
+    end
+    alias t translate
+
+    private
+
+    
+    def process_translation(key, options)
       translation = if defined?(super)
                       super(key, **options)
                     else
@@ -15,9 +29,6 @@ module I18nOnSteroids
         translation
       end
     end
-    alias t translate
-
-    private
 
     def process_mixed_translation(translation, options)
       parts = translation.split(/(\$\{[^}]+\}|%\{[^}]+\})/)
