@@ -1,7 +1,13 @@
 # frozen_string_literal: true
-
+#
 module I18nOnSteroids
   module TranslationHelper
+    @@custom_pipes = {}
+    
+    def self.register_pipe(name, callable)
+      @@custom_pipes[name.to_s] = callable
+    end
+
     def translate(key, **options)
       return process_translation(key, options) if options.key?(:count) || options.key?(:scope)
       
@@ -74,27 +80,30 @@ module I18nOnSteroids
     # rubocop:disable Metrics/CyclomaticComplexity
     def apply_pipes(value, pipes, options)
       pipes.reduce(value) do |result, pipe|
-        case pipe
-        when "number_with_delimiter"
-          number_with_delimiter(result)
-        when "pluralize"
-          result.pluralize
-        when /^pluralize(?::(\d+))?$/
-          count = ::Regexp.last_match(1) ? ::Regexp.last_match(1).to_i : options[:count]
-          count ? result.pluralize(count) : result.pluralize
-        when "upcase"
-          result.upcase
-        when "downcase"
-          result.downcase
-        when "capitalize"
-          result.capitalize
-        when "html_safe"
-          result.html_safe
-        when /^format:(.+)$/
-          format(::Regexp.last_match(1), result)
+        if @@custom_pipes.key?(pipe)
+          @@custom_pipes[pipe].call(value, options)
         else
-          # You might want to raise an error for unknown pipes
-          result
+          case pipe
+          when "number_with_delimiter"
+            number_with_delimiter(result)
+          when "pluralize"
+            result.pluralize
+          when /^pluralize(?::(\d+))?$/
+            count = ::Regexp.last_match(1) ? ::Regexp.last_match(1).to_i : options[:count]
+            count ? result.pluralize(count) : result.pluralize
+          when "upcase"
+            result.upcase
+          when "downcase"
+            result.downcase
+          when "capitalize"
+            result.capitalize
+          when "html_safe"
+            result.html_safe
+          when /^format:(.+)$/
+            format(::Regexp.last_match(1), result)
+          else
+            result
+          end
         end
       end
       # rubocop:enable Metrics/MethodLength
