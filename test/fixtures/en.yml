@@ -7,3 +7,9 @@ en:
   missing_interpolation: "Missing: %{missing}"
   regular_string: "I'm not screaming, ${'you are' | upcase}"
   mixed_regular_and_interpolation: "Mixed: ${'value' | upcase} and %{count | number_with_delimiter}"
+  parameterized: "Length: ${value | truncate:10}"
+  custom_pattern: "Custom: {{value | upcase}}"
+  different_separator: "Separator: ${value > upcase}"
+  default_truncate: "Truncated: ${value | truncate}"
+  default_round: "Rounded: ${value | round}"
+  

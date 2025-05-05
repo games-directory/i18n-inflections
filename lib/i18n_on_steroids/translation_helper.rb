@@ -1,45 +1,79 @@
 # frozen_string_literal: true
-#
+
 module I18nOnSteroids
+  class Configuration
+    attr_accessor :default_truncate_length,
+                  :default_round_precision,
+                  :fallback_on_missing_value,
+                  :raise_on_unknown_pipe
+
+    def initialize
+      @default_truncate_length = 30
+      @default_round_precision = 2
+      @fallback_on_missing_value = false
+      @raise_on_unknown_pipe = false
+    end
+  end
+
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
+  def self.configure
+    yield(configuration)
+  end
+
   module TranslationHelper
+    # Custom pipe registry
     @@custom_pipes = {}
+    @@pipe_separator = "|"
     
+    # Register a pipe transformation
     def self.register_pipe(name, callable)
       @@custom_pipes[name.to_s] = callable
     end
+    
+    # Change pipe separator
+    def self.pipe_separator=(separator)
+      @@pipe_separator = separator
+    end
+    
+    def self.pipe_separator
+      @@pipe_separator
+    end
+    
+    # List all available pipes
+    def self.available_pipes
+      built_in = %w[number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format]
+      custom = @@custom_pipes.keys
+      
+      {
+        built_in: built_in,
+        custom: custom
+      }
+    end
 
     def translate(key, **options)
-      return process_translation(key, options) if options.key?(:count) || options.key?(:scope)
-      
-      cache_key = "i18n_enhanced:#{key}:#{options.hash}"
-
-      Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-        process_translation(key, options)
-      end
-    end
-    alias t translate
-
-    private
-
-    
-    def process_translation(key, options)
       translation = if defined?(super)
                       super(key, **options)
                     else
                       I18n.translate(key, **options)
                     end
 
-      if translation.is_a?(String) && (translation.include?("%{") || translation.include?("${"))
+      if translation.is_a?(String) && (translation.include?("%{") || translation.include?("${") || translation.include?("{{"))
         process_mixed_translation(translation, options)
       else
         translation
       end
     end
+    alias t translate
+
+    private
 
     def process_mixed_translation(translation, options)
-      parts = translation.split(/(\$\{[^}]+\}|%\{[^}]+\})/)
+      parts = translation.split(/(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/)
       processed_parts = parts.map do |part|
-        if part.start_with?("${", "%{")
+        if part.start_with?("${", "%{", "{{")
           process_interpolation(part, options)
         else
           part
@@ -50,47 +84,118 @@ module I18nOnSteroids
     end
 
     def process_interpolation(interpolation, options)
-      match_data = interpolation.match(/^(\$\{|%\{)([^}]+)}$/)
-
-      return interpolation unless match_data
-
-      if (content = match_data[2].strip).start_with?("'", '"')
-        # This is a regular string with pipes: ${'Hello' | upcase}
-        process_string_with_pipes(content)
+      if interpolation.start_with?("${")
+        match_data = interpolation.match(/^\$\{([^}]+)\}$/)
+        return interpolation unless match_data
+        
+        content = match_data[1].strip
+        process_content_with_pipes(content, options)
+      elsif interpolation.start_with?("%{")
+        match_data = interpolation.match(/^%\{([^}]+)\}$/)
+        return interpolation unless match_data
+        
+        content = match_data[1].strip
+        process_content_with_pipes(content, options)
+      elsif interpolation.start_with?("{{")
+        match_data = interpolation.match(/^\{\{([^}]+)\}\}$/)
+        return interpolation unless match_data
+        
+        content = match_data[1].strip
+        process_content_with_pipes(content, options)
       else
-        # This is a variable interpolation with pipes: ${name | upcase}
-        key, *pipes = content.split("|").map(&:strip)
-        value = options[key.to_sym]
+        interpolation
+      end
+    end
+    
+    def process_content_with_pipes(content, options)
+      separator = TranslationHelper.pipe_separator
+      
+      if content.include?(separator)
+        if content.start_with?("'", '"')
+          process_string_with_pipes(content)
+        else
+          process_variable_with_pipes(content, options)
+        end
+      else
+        # Simple variable without pipes
+        value = options[content.to_sym]
+        value.nil? ? "%{#{content}}" : value.to_s
+      end
+    end
 
-        return interpolation if value.nil?
+    def process_variable_with_pipes(content, options)
+      separator = TranslationHelper.pipe_separator
+      segments = content.split(separator).map(&:strip)
+      key = segments.shift
+      value = options[key.to_sym]
 
-        apply_pipes(value, pipes, options)
+      # Handle missing values based on configuration
+      if value.nil?
+        return I18nOnSteroids.configuration.fallback_on_missing_value ? "" : "%{#{content}}"
+      end
+
+      pipes = parse_pipes(segments)
+      apply_pipes(value, pipes, options)
+    end
+
+    def parse_pipes(pipe_segments)
+      pipe_segments.map do |segment|
+        pipe_parts = segment.split(":", 2)
+        name = pipe_parts[0].strip
+        params = pipe_parts[1]&.strip
+
+        if params
+          { name: name, params: params }
+        else
+          { name: name, params: nil }
+        end
       end
     end
 
     def process_string_with_pipes(content)
-      string, *pipes = content.split("|").map(&:strip)
+      separator = TranslationHelper.pipe_separator
+      segments = content.split(separator).map(&:strip)
+      string = segments.shift
       string = string[1...-1] if string.start_with?('"', "'")
 
+      pipes = parse_pipes(segments)
       apply_pipes(string, pipes, {})
     end
 
-    # rubocop:disable Metrics/MethodLength
-    # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/CyclomaticComplexity
     def apply_pipes(value, pipes, options)
       pipes.reduce(value) do |result, pipe|
-        if @@custom_pipes.key?(pipe)
-          @@custom_pipes[pipe].call(value, options)
+        pipe_name = pipe[:name]
+        pipe_params = pipe[:params]
+        
+        # Check for custom pipes first
+        if @@custom_pipes.key?(pipe_name)
+          @@custom_pipes[pipe_name].call(result, pipe_params, options)
         else
-          case pipe
+          # Handle built-in pipes
+          case pipe_name
           when "number_with_delimiter"
             number_with_delimiter(result)
           when "pluralize"
-            result.pluralize
-          when /^pluralize(?::(\d+))?$/
-            count = ::Regexp.last_match(1) ? ::Regexp.last_match(1).to_i : options[:count]
-            count ? result.pluralize(count) : result.pluralize
+            if pipe_params
+              # Handle both direct numbers and variable references
+              if pipe_params.start_with?("%{")
+                # This is a reference to another variable
+                count_key = pipe_params.match(/^%\{([^}]+)\}$/)[1]
+                count = options[count_key.to_sym]
+                result.pluralize(count)
+              else
+                result.pluralize(pipe_params.to_i)
+              end
+            else
+              count = options[:count]
+              count ? result.pluralize(count) : result.pluralize
+            end
+          when "truncate"
+            length = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_truncate_length
+            result.to_s.truncate(length)
+          when "round"
+            precision = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_round_precision
+            result.to_f.round(precision)
           when "upcase"
             result.upcase
           when "downcase"
@@ -99,16 +204,18 @@ module I18nOnSteroids
             result.capitalize
           when "html_safe"
             result.html_safe
-          when /^format:(.+)$/
-            format(::Regexp.last_match(1), result)
+          when "format"
+            format_str = pipe_params || "%s"
+            format(format_str, result)
           else
-            result
+            if I18nOnSteroids.configuration.raise_on_unknown_pipe
+              raise "Unknown pipe: #{pipe_name}"
+            else
+              result
+            end
           end
         end
       end
-      # rubocop:enable Metrics/MethodLength
-      # rubocop:enable Metrics/AbcSize
-      # rubocop:enable Metrics/CyclomaticComplexity
     end
   end
 end
