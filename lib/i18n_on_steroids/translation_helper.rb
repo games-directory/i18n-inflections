@@ -24,29 +24,25 @@ module I18nOnSteroids
   end
 
   module TranslationHelper
-    # Custom pipe registry
     @@custom_pipes = {}
     @@pipe_separator = "|"
-    
-    # Register a pipe transformation
+
     def self.register_pipe(name, callable)
       @@custom_pipes[name.to_s] = callable
     end
-    
-    # Change pipe separator
+
     def self.pipe_separator=(separator)
       @@pipe_separator = separator
     end
-    
+
     def self.pipe_separator
       @@pipe_separator
     end
-    
-    # List all available pipes
+
     def self.available_pipes
       built_in = %w[number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format]
       custom = @@custom_pipes.keys
-      
+
       {
         built_in: built_in,
         custom: custom
@@ -87,29 +83,29 @@ module I18nOnSteroids
       if interpolation.start_with?("${")
         match_data = interpolation.match(/^\$\{([^}]+)\}$/)
         return interpolation unless match_data
-        
+
         content = match_data[1].strip
         process_content_with_pipes(content, options)
       elsif interpolation.start_with?("%{")
         match_data = interpolation.match(/^%\{([^}]+)\}$/)
         return interpolation unless match_data
-        
+
         content = match_data[1].strip
         process_content_with_pipes(content, options)
       elsif interpolation.start_with?("{{")
         match_data = interpolation.match(/^\{\{([^}]+)\}\}$/)
         return interpolation unless match_data
-        
+
         content = match_data[1].strip
         process_content_with_pipes(content, options)
       else
         interpolation
       end
     end
-    
+
     def process_content_with_pipes(content, options)
       separator = TranslationHelper.pipe_separator
-      
+
       if content.include?(separator)
         if content.start_with?("'", '"')
           process_string_with_pipes(content)
@@ -117,7 +113,6 @@ module I18nOnSteroids
           process_variable_with_pipes(content, options)
         end
       else
-        # Simple variable without pipes
         value = options[content.to_sym]
         value.nil? ? "%{#{content}}" : value.to_s
       end
@@ -129,7 +124,6 @@ module I18nOnSteroids
       key = segments.shift
       value = options[key.to_sym]
 
-      # Handle missing values based on configuration
       if value.nil?
         return I18nOnSteroids.configuration.fallback_on_missing_value ? "" : "%{#{content}}"
       end
@@ -166,20 +160,16 @@ module I18nOnSteroids
       pipes.reduce(value) do |result, pipe|
         pipe_name = pipe[:name]
         pipe_params = pipe[:params]
-        
-        # Check for custom pipes first
+
         if @@custom_pipes.key?(pipe_name)
           @@custom_pipes[pipe_name].call(result, pipe_params, options)
         else
-          # Handle built-in pipes
           case pipe_name
           when "number_with_delimiter"
             number_with_delimiter(result)
           when "pluralize"
             if pipe_params
-              # Handle both direct numbers and variable references
               if pipe_params.start_with?("%{")
-                # This is a reference to another variable
                 count_key = pipe_params.match(/^%\{([^}]+)\}$/)[1]
                 count = options[count_key.to_sym]
                 result.pluralize(count)
@@ -208,11 +198,9 @@ module I18nOnSteroids
             format_str = pipe_params || "%s"
             format(format_str, result)
           else
-            if I18nOnSteroids.configuration.raise_on_unknown_pipe
-              raise "Unknown pipe: #{pipe_name}"
-            else
-              result
-            end
+            raise "Unknown pipe: #{pipe_name}" if I18nOnSteroids.configuration.raise_on_unknown_pipe
+
+            result
           end
         end
       end
