@@ -1,0 +1,37 @@
+# frozen_string_literal: true
+
+# <%= pipe_description %>
+#
+# Usage in translations:
+<% if pipe_namespace -%>
+#   ${value | <%= pipe_namespace %>.<%= file_name %>}
+#   ${value | <%= pipe_namespace %>.<%= file_name %>: parameter}
+<% else -%>
+#   ${value | <%= file_name %>}
+#   ${value | <%= file_name %>: parameter}
+<% end -%>
+#
+# Example:
+#   I18n.t("my.translation", value: "input")
+class <%= class_name %>Pipe
+  def call(value, params = nil, options = {})
+    # TODO: Implement your pipe logic here
+    #
+    # Parameters:
+    #   value  - The value to transform
+    #   params - Optional parameter string from the translation
+    #   options - The full options hash passed to translate()
+    #
+    # Returns:
+    #   The transformed value
+
+    # Example implementation:
+    # if params
+    #   value.to_s.transform_with(params)
+    # else
+    #   value.to_s.transform
+    # end
+
+    value
+  end
+end

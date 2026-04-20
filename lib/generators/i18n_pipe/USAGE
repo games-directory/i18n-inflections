@@ -1,0 +1,32 @@
+Description:
+    Generates a custom pipe for I18nOnSteroids with boilerplate code.
+
+Example:
+    rails generate i18n_pipe my_custom
+
+    This will create:
+        app/pipes/my_custom_pipe.rb
+        config/initializers/i18n_on_steroids.rb (if not exists)
+
+    And register the pipe in the initializer.
+
+Options:
+    --namespace=NAMESPACE
+        Organize pipe under a namespace (e.g., datetime, money, text)
+
+        Example:
+            rails generate i18n_pipe format --namespace=datetime
+
+        Usage in translations:
+            ${date | datetime.format: %Y-%m-%d}
+
+    --description=DESC
+        Add a custom description for the pipe
+
+        Example:
+            rails generate i18n_pipe reverse --description="Reverses a string"
+
+Complete Examples:
+    rails generate i18n_pipe currency_symbol
+    rails generate i18n_pipe format --namespace=datetime
+    rails generate i18n_pipe humanize_bytes --namespace=file --description="Converts bytes to human readable format"
