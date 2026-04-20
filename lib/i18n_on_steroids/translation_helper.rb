@@ -24,29 +24,30 @@ module I18nOnSteroids
   end
 
   module TranslationHelper
-    @@custom_pipes = {}
-    @@pipe_separator = "|"
+    class << self
+      attr_writer :pipe_separator
 
-    def self.register_pipe(name, callable)
-      @@custom_pipes[name.to_s] = callable
-    end
+      def custom_pipes
+        @custom_pipes ||= {}
+      end
 
-    def self.pipe_separator=(separator)
-      @@pipe_separator = separator
-    end
+      def pipe_separator
+        @pipe_separator ||= "|"
+      end
 
-    def self.pipe_separator
-      @@pipe_separator
-    end
+      def register_pipe(name, callable)
+        custom_pipes[name.to_s] = callable
+      end
 
-    def self.available_pipes
-      built_in = %w[number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format]
-      custom = @@custom_pipes.keys
+      def available_pipes
+        built_in = %w[number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format]
+        custom = custom_pipes.keys
 
-      {
-        built_in: built_in,
-        custom: custom
-      }
+        {
+          built_in: built_in,
+          custom: custom
+        }
+      end
     end
 
     def translate(key, **options)
@@ -161,8 +162,8 @@ module I18nOnSteroids
         pipe_name = pipe[:name]
         pipe_params = pipe[:params]
 
-        if @@custom_pipes.key?(pipe_name)
-          @@custom_pipes[pipe_name].call(result, pipe_params, options)
+        if TranslationHelper.custom_pipes.key?(pipe_name)
+          TranslationHelper.custom_pipes[pipe_name].call(result, pipe_params, options)
         else
           case pipe_name
           when "number_with_delimiter"
