@@ -65,8 +65,9 @@ module I18nOnSteroids
         @pipe_cache = {}
       end
 
-      def register_pipe(name, callable)
-        custom_pipes[name.to_s] = callable
+      def register_pipe(name, callable, namespace: nil)
+        pipe_key = namespace ? "#{namespace}.#{name}" : name.to_s
+        custom_pipes[pipe_key] = callable
         clear_pipe_cache! # Clear cache when pipes are registered
       end
 
