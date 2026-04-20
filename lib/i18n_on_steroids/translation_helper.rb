@@ -219,6 +219,9 @@ module I18nOnSteroids
     end
 
     def apply_pipes(value, pipes, options)
+      # Lazy evaluation: return immediately if no pipes to apply
+      return value if pipes.empty?
+
       debug_log "Applying #{pipes.length} pipe(s) to value: #{value.inspect}"
 
       pipes.reduce(value) do |result, pipe|
