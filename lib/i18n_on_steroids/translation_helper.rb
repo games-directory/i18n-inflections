@@ -5,13 +5,17 @@ module I18nOnSteroids
     attr_accessor :default_truncate_length,
                   :default_round_precision,
                   :fallback_on_missing_value,
-                  :raise_on_unknown_pipe
+                  :raise_on_unknown_pipe,
+                  :debug_mode,
+                  :strict_mode
 
     def initialize
       @default_truncate_length = 30
       @default_round_precision = 2
       @fallback_on_missing_value = false
       @raise_on_unknown_pipe = false
+      @debug_mode = false
+      @strict_mode = false
     end
   end
 
@@ -77,6 +81,7 @@ module I18nOnSteroids
                     end
 
       if translation.is_a?(String) && (translation.include?("%{") || translation.include?("${") || translation.include?("{{"))
+        debug_log "Processing translation for key: #{key}"
         process_mixed_translation(translation, options)
       else
         translation
@@ -85,6 +90,16 @@ module I18nOnSteroids
     alias t translate
 
     private
+
+    def debug_log(message)
+      return unless I18nOnSteroids.configuration.debug_mode
+
+      if defined?(Rails) && Rails.logger
+        Rails.logger.debug("[I18nOnSteroids] #{message}")
+      else
+        puts "[I18nOnSteroids DEBUG] #{message}"
+      end
+    end
 
     def process_mixed_translation(translation, options)
       parts = translation.split(INTERPOLATION_SPLIT_PATTERN)
@@ -183,53 +198,90 @@ module I18nOnSteroids
     end
 
     def apply_pipes(value, pipes, options)
+      debug_log "Applying #{pipes.length} pipe(s) to value: #{value.inspect}"
+
       pipes.reduce(value) do |result, pipe|
         pipe_name = pipe[:name]
         pipe_params = pipe[:params]
 
-        if TranslationHelper.custom_pipes.key?(pipe_name)
-          TranslationHelper.custom_pipes[pipe_name].call(result, pipe_params, options)
-        else
-          case pipe_name
-          when "number_with_delimiter"
-            number_with_delimiter(result)
-          when "pluralize"
-            if pipe_params
-              if pipe_params.start_with?("%{")
-                count_key = pipe_params.match(PARAM_INTERPOLATION_PATTERN)[1]
-                count = options[count_key.to_sym]
-                result.pluralize(count)
-              else
-                result.pluralize(pipe_params.to_i)
-              end
-            else
-              count = options[:count]
-              count ? result.pluralize(count) : result.pluralize
-            end
-          when "truncate"
-            length = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_truncate_length
-            result.to_s.truncate(length)
-          when "round"
-            precision = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_round_precision
-            result.to_f.round(precision)
-          when "upcase"
-            result.upcase
-          when "downcase"
-            result.downcase
-          when "capitalize"
-            result.capitalize
-          when "html_safe"
-            result.html_safe
-          when "format"
-            format_str = pipe_params || "%s"
-            format(format_str, result)
-          else
-            raise "Unknown pipe: #{pipe_name}" if I18nOnSteroids.configuration.raise_on_unknown_pipe
+        debug_log "Applying pipe '#{pipe_name}' with params: #{pipe_params.inspect}"
 
-            result
-          end
+        begin
+          transformed = if TranslationHelper.custom_pipes.key?(pipe_name)
+                          TranslationHelper.custom_pipes[pipe_name].call(result, pipe_params, options)
+                        else
+                          case pipe_name
+                          when "number_with_delimiter"
+                            number_with_delimiter(result)
+                          when "pluralize"
+                            if pipe_params
+                              if pipe_params.start_with?("%{")
+                                count_key = pipe_params.match(PARAM_INTERPOLATION_PATTERN)[1]
+                                count = options[count_key.to_sym]
+                                result.pluralize(count)
+                              else
+                                result.pluralize(pipe_params.to_i)
+                              end
+                            else
+                              count = options[:count]
+                              count ? result.pluralize(count) : result.pluralize
+                            end
+                          when "truncate"
+                            length = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_truncate_length
+                            result.to_s.truncate(length)
+                          when "round"
+                            precision = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_round_precision
+                            result.to_f.round(precision)
+                          when "upcase"
+                            result.upcase
+                          when "downcase"
+                            result.downcase
+                          when "capitalize"
+                            result.capitalize
+                          when "html_safe"
+                            result.html_safe
+                          when "format"
+                            format_str = pipe_params || "%s"
+                            format(format_str, result)
+                          else
+                            handle_unknown_pipe(pipe_name, result)
+                          end
+                        end
+
+          debug_log "Result after '#{pipe_name}': #{transformed.inspect}"
+          transformed
+        rescue StandardError => e
+          # Re-raise if it's an intentional error from handle_unknown_pipe
+          raise if e.message.start_with?("Unknown pipe") || e.message.start_with?("Error applying pipe")
+
+          handle_pipe_error(pipe_name, e, result)
         end
       end
+    end
+
+    def handle_unknown_pipe(pipe_name, result)
+      config = I18nOnSteroids.configuration
+      should_raise = config.strict_mode || config.raise_on_unknown_pipe
+
+      if should_raise
+        available = TranslationHelper.available_pipes
+        all_pipes = available[:built_in] + available[:custom]
+        raise "Unknown pipe ':#{pipe_name}'. Available pipes: #{all_pipes.join(', ')}"
+      end
+
+      debug_log "Unknown pipe '#{pipe_name}' ignored, returning original value"
+      result
+    end
+
+    def handle_pipe_error(pipe_name, error, result)
+      config = I18nOnSteroids.configuration
+
+      if config.strict_mode
+        raise "Error applying pipe ':#{pipe_name}': #{error.message}"
+      end
+
+      debug_log "Error in pipe '#{pipe_name}': #{error.message}, returning original value"
+      result
     end
   end
 end
