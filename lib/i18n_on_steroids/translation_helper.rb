@@ -196,15 +196,36 @@ module I18nOnSteroids
       # Return cached result if available
       TranslationHelper.pipe_cache[cache_key] ||= begin
         pipe_segments.map do |segment|
+          # Extract conditional (if/unless) if present
+          condition_type = nil
+          condition_key = nil
+
+          if segment.include?(" if:")
+            parts = segment.split(" if:", 2)
+            segment = parts[0]
+            condition_type = :if
+            condition_key = parts[1]&.strip
+          elsif segment.include?(" unless:")
+            parts = segment.split(" unless:", 2)
+            segment = parts[0]
+            condition_type = :unless
+            condition_key = parts[1]&.strip
+          end
+
+          # Parse pipe name and parameters
           pipe_parts = segment.split(":", 2)
           name = pipe_parts[0].strip
           params = pipe_parts[1]&.strip
 
-          if params
-            { name: name, params: params }
-          else
-            { name: name, params: nil }
+          pipe_info = { name: name, params: params }
+
+          # Add condition info if present
+          if condition_type
+            pipe_info[:condition_type] = condition_type
+            pipe_info[:condition_key] = condition_key
           end
+
+          pipe_info
         end
       end
     end
@@ -228,6 +249,15 @@ module I18nOnSteroids
       pipes.reduce(value) do |result, pipe|
         pipe_name = TranslationHelper.resolve_pipe_name(pipe[:name])
         pipe_params = pipe[:params]
+
+        # Check conditional execution
+        if pipe[:condition_type]
+          should_apply = evaluate_condition(pipe[:condition_type], pipe[:condition_key], options)
+          unless should_apply
+            debug_log "Skipping pipe '#{pipe_name}' due to failed condition"
+            next result
+          end
+        end
 
         debug_log "Applying pipe '#{pipe_name}' with params: #{pipe_params.inspect}"
 
@@ -331,6 +361,19 @@ module I18nOnSteroids
 
           handle_pipe_error(pipe_name, e, result)
         end
+      end
+    end
+
+    def evaluate_condition(condition_type, condition_key, options)
+      condition_value = options[condition_key.to_sym]
+
+      case condition_type
+      when :if
+        !!condition_value # Truthy check
+      when :unless
+        !condition_value # Falsy check
+      else
+        true # No condition or unknown type
       end
     end
 
