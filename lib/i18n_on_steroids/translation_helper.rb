@@ -32,8 +32,6 @@ module I18nOnSteroids
     PARAM_INTERPOLATION_PATTERN = /^%\{([^}]+)\}$/.freeze
 
     class << self
-      attr_writer :pipe_separator
-
       def custom_pipes
         @custom_pipes ||= {}
       end
@@ -42,8 +40,22 @@ module I18nOnSteroids
         @pipe_separator ||= "|"
       end
 
+      def pipe_separator=(separator)
+        @pipe_separator = separator
+        clear_pipe_cache! # Clear cache when separator changes
+      end
+
+      def pipe_cache
+        @pipe_cache ||= {}
+      end
+
+      def clear_pipe_cache!
+        @pipe_cache = {}
+      end
+
       def register_pipe(name, callable)
         custom_pipes[name.to_s] = callable
+        clear_pipe_cache! # Clear cache when pipes are registered
       end
 
       def available_pipes
@@ -141,15 +153,21 @@ module I18nOnSteroids
     end
 
     def parse_pipes(pipe_segments)
-      pipe_segments.map do |segment|
-        pipe_parts = segment.split(":", 2)
-        name = pipe_parts[0].strip
-        params = pipe_parts[1]&.strip
+      # Create cache key from pipe segments and separator
+      cache_key = "#{pipe_segments.join('|')}:#{TranslationHelper.pipe_separator}"
 
-        if params
-          { name: name, params: params }
-        else
-          { name: name, params: nil }
+      # Return cached result if available
+      TranslationHelper.pipe_cache[cache_key] ||= begin
+        pipe_segments.map do |segment|
+          pipe_parts = segment.split(":", 2)
+          name = pipe_parts[0].strip
+          params = pipe_parts[1]&.strip
+
+          if params
+            { name: name, params: params }
+          else
+            { name: name, params: nil }
+          end
         end
       end
     end
