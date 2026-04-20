@@ -66,6 +66,7 @@ module I18nOnSteroids
         built_in = %w[
           number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format
           titleize humanize parameterize strip squish
+          currency date_format time_format default
         ]
         custom = custom_pipes.keys
 
@@ -257,6 +258,45 @@ module I18nOnSteroids
                             result.to_s.strip
                           when "squish"
                             result.to_s.squish
+                          when "currency"
+                            unit = pipe_params || "$"
+                            if defined?(ActionView::Helpers::NumberHelper) && respond_to?(:number_to_currency)
+                              number_to_currency(result, unit: unit)
+                            else
+                              "#{unit}#{number_with_delimiter(result)}"
+                            end
+                          when "date_format"
+                            format_str = pipe_params || "%Y-%m-%d"
+                            if result.respond_to?(:strftime)
+                              result.strftime(format_str)
+                            elsif result.is_a?(String)
+                              begin
+                                Date.parse(result).strftime(format_str)
+                              rescue ArgumentError
+                                result
+                              end
+                            else
+                              result.to_s
+                            end
+                          when "time_format"
+                            format_str = pipe_params || "%H:%M:%S"
+                            if result.respond_to?(:strftime)
+                              result.strftime(format_str)
+                            elsif result.is_a?(String)
+                              begin
+                                Time.parse(result).strftime(format_str)
+                              rescue ArgumentError
+                                result
+                              end
+                            else
+                              result.to_s
+                            end
+                          when "default"
+                            if result.nil? || (result.respond_to?(:empty?) && result.empty?)
+                              pipe_params || ""
+                            else
+                              result
+                            end
                           else
                             handle_unknown_pipe(pipe_name, result)
                           end
