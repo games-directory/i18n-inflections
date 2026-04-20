@@ -40,6 +40,14 @@ module I18nOnSteroids
         @custom_pipes ||= {}
       end
 
+      def pipe_aliases
+        @pipe_aliases ||= {
+          "trim" => "truncate",
+          "limit" => "truncate",
+          "shorten" => "truncate"
+        }
+      end
+
       def pipe_separator
         @pipe_separator ||= "|"
       end
@@ -60,6 +68,15 @@ module I18nOnSteroids
       def register_pipe(name, callable)
         custom_pipes[name.to_s] = callable
         clear_pipe_cache! # Clear cache when pipes are registered
+      end
+
+      def register_pipe_alias(alias_name, pipe_name)
+        pipe_aliases[alias_name.to_s] = pipe_name.to_s
+        clear_pipe_cache! # Clear cache when aliases are registered
+      end
+
+      def resolve_pipe_name(name)
+        pipe_aliases[name.to_s] || name.to_s
       end
 
       def available_pipes
@@ -205,7 +222,7 @@ module I18nOnSteroids
       debug_log "Applying #{pipes.length} pipe(s) to value: #{value.inspect}"
 
       pipes.reduce(value) do |result, pipe|
-        pipe_name = pipe[:name]
+        pipe_name = TranslationHelper.resolve_pipe_name(pipe[:name])
         pipe_params = pipe[:params]
 
         debug_log "Applying pipe '#{pipe_name}' with params: #{pipe_params.inspect}"
