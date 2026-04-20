@@ -1,4 +1,124 @@
+# Type signatures for I18nOnSteroids gem
 module I18nOnSteroids
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  class Error < StandardError
+  end
+
+  class Configuration
+    attr_accessor default_truncate_length: Integer
+    attr_accessor default_round_precision: Integer
+    attr_accessor fallback_on_missing_value: bool
+    attr_accessor raise_on_unknown_pipe: bool
+    attr_accessor debug_mode: bool
+    attr_accessor strict_mode: bool
+
+    def initialize: () -> void
+  end
+
+  def self.configuration: () -> Configuration
+
+  def self.configure: () { (Configuration) -> void } -> void
+
+  def self.demo: () -> void
+
+  def self.test_pipe: (*untyped args) -> void
+
+  def self.list_pipes: () -> void
+
+  def self.pipe_info: (Symbol | String name) -> void
+
+  module TranslationHelper
+    # Pre-compiled regex patterns
+    INTERPOLATION_SPLIT_PATTERN: Regexp
+    DOLLAR_BRACE_PATTERN: Regexp
+    PERCENT_BRACE_PATTERN: Regexp
+    DOUBLE_BRACE_PATTERN: Regexp
+    PARAM_INTERPOLATION_PATTERN: Regexp
+
+    # Pipe information hash
+    type pipe_info = {
+      name: String,
+      params: String?,
+      condition_type: (:if | :unless)?,
+      condition_key: String?
+    }
+
+    # Available pipes hash
+    type available_pipes_hash = {
+      built_in: Array[String],
+      custom: Array[String]
+    }
+
+    # Pipe callable type
+    type pipe_callable = ^(untyped value, String? params, Hash[Symbol, untyped] options) -> untyped
+
+    module ClassMethods
+      def custom_pipes: () -> Hash[String, pipe_callable]
+
+      def pipe_aliases: () -> Hash[String, String]
+
+      def pipe_separator: () -> String
+
+      def pipe_separator=: (String separator) -> String
+
+      def pipe_cache: () -> Hash[String, Array[pipe_info]]
+
+      def clear_pipe_cache!: () -> Hash[String, Array[pipe_info]]
+
+      def register_pipe: (Symbol | String name, pipe_callable callable, ?namespace: (Symbol | String)?) -> pipe_callable
+
+      def register_pipe_alias: (Symbol | String alias_name, Symbol | String pipe_name) -> String
+
+      def resolve_pipe_name: (Symbol | String name) -> String
+
+      def available_pipes: () -> available_pipes_hash
+    end
+
+    extend ClassMethods
+
+    # Instance methods
+    def translate: (Symbol | String key, **untyped options) -> String
+
+    alias t translate
+
+    private
+
+    def debug_log: (String message) -> void
+
+    def process_mixed_translation: (String translation, Hash[Symbol, untyped] options) -> String
+
+    def process_interpolation: (String interpolation, Hash[Symbol, untyped] options) -> String
+
+    def process_content_with_pipes: (String content, Hash[Symbol, untyped] options) -> String
+
+    def process_variable_with_pipes: (String content, Hash[Symbol, untyped] options) -> String
+
+    def parse_pipes: (Array[String] pipe_segments) -> Array[pipe_info]
+
+    def process_string_with_pipes: (String content) -> String
+
+    def apply_pipes: (untyped value, Array[pipe_info] pipes, Hash[Symbol, untyped] options) -> untyped
+
+    def process_param_interpolations: (String? param_string, Hash[Symbol, untyped] options) -> String?
+
+    def evaluate_condition: (:if | :unless condition_type, String condition_key, Hash[Symbol, untyped] options) -> bool
+
+    def handle_unknown_pipe: (String pipe_name, untyped result) -> untyped
+
+    def handle_pipe_error: (String pipe_name, StandardError error, untyped result) -> untyped
+  end
+
+  module ConsoleHelpers
+    def self.demo: () -> void
+
+    def self.test_pipe: (Symbol? pipe_name, untyped? value) -> void
+
+    def self.list_pipes: () -> void
+
+    def self.pipe_info: (Symbol | String pipe_name) -> void
+  end
+
+  class Railtie < Rails::Railtie
+  end
 end
