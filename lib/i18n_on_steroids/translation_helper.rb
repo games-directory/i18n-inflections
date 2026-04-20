@@ -259,33 +259,36 @@ module I18nOnSteroids
           end
         end
 
-        debug_log "Applying pipe '#{pipe_name}' with params: #{pipe_params.inspect}"
+        # Process parameter interpolations if present
+        processed_params = process_param_interpolations(pipe_params, options) if pipe_params
+
+        debug_log "Applying pipe '#{pipe_name}' with params: #{processed_params.inspect}"
 
         begin
           transformed = if TranslationHelper.custom_pipes.key?(pipe_name)
-                          TranslationHelper.custom_pipes[pipe_name].call(result, pipe_params, options)
+                          TranslationHelper.custom_pipes[pipe_name].call(result, processed_params, options)
                         else
                           case pipe_name
                           when "number_with_delimiter"
                             number_with_delimiter(result)
                           when "pluralize"
-                            if pipe_params
-                              if pipe_params.start_with?("%{")
-                                count_key = pipe_params.match(PARAM_INTERPOLATION_PATTERN)[1]
+                            if processed_params
+                              if processed_params.start_with?("%{")
+                                count_key = processed_params.match(PARAM_INTERPOLATION_PATTERN)[1]
                                 count = options[count_key.to_sym]
                                 result.pluralize(count)
                               else
-                                result.pluralize(pipe_params.to_i)
+                                result.pluralize(processed_params.to_i)
                               end
                             else
                               count = options[:count]
                               count ? result.pluralize(count) : result.pluralize
                             end
                           when "truncate"
-                            length = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_truncate_length
+                            length = processed_params ? processed_params.to_i : I18nOnSteroids.configuration.default_truncate_length
                             result.to_s.truncate(length)
                           when "round"
-                            precision = pipe_params ? pipe_params.to_i : I18nOnSteroids.configuration.default_round_precision
+                            precision = processed_params ? processed_params.to_i : I18nOnSteroids.configuration.default_round_precision
                             result.to_f.round(precision)
                           when "upcase"
                             result.upcase
@@ -296,28 +299,28 @@ module I18nOnSteroids
                           when "html_safe"
                             result.html_safe
                           when "format"
-                            format_str = pipe_params || "%s"
+                            format_str = processed_params || "%s"
                             format(format_str, result)
                           when "titleize"
                             result.to_s.titleize
                           when "humanize"
                             result.to_s.humanize
                           when "parameterize"
-                            separator = pipe_params || "-"
+                            separator = processed_params || "-"
                             result.to_s.parameterize(separator: separator)
                           when "strip"
                             result.to_s.strip
                           when "squish"
                             result.to_s.squish
                           when "currency"
-                            unit = pipe_params || "$"
+                            unit = processed_params || "$"
                             if defined?(ActionView::Helpers::NumberHelper) && respond_to?(:number_to_currency)
                               number_to_currency(result, unit: unit)
                             else
                               "#{unit}#{number_with_delimiter(result)}"
                             end
                           when "date_format"
-                            format_str = pipe_params || "%Y-%m-%d"
+                            format_str = processed_params || "%Y-%m-%d"
                             if result.respond_to?(:strftime)
                               result.strftime(format_str)
                             elsif result.is_a?(String)
@@ -330,7 +333,7 @@ module I18nOnSteroids
                               result.to_s
                             end
                           when "time_format"
-                            format_str = pipe_params || "%H:%M:%S"
+                            format_str = processed_params || "%H:%M:%S"
                             if result.respond_to?(:strftime)
                               result.strftime(format_str)
                             elsif result.is_a?(String)
@@ -344,7 +347,7 @@ module I18nOnSteroids
                             end
                           when "default"
                             if result.nil? || (result.respond_to?(:empty?) && result.empty?)
-                              pipe_params || ""
+                              processed_params || ""
                             else
                               result
                             end
@@ -362,6 +365,26 @@ module I18nOnSteroids
           handle_pipe_error(pipe_name, e, result)
         end
       end
+    end
+
+    def process_param_interpolations(param_string, options)
+      return param_string unless param_string
+
+      # Check if parameter contains interpolations
+      return param_string unless param_string.match?(INTERPOLATION_SPLIT_PATTERN)
+
+      # Process all interpolations in the parameter string
+      parts = param_string.split(INTERPOLATION_SPLIT_PATTERN)
+      processed_parts = parts.map do |part|
+        if part.start_with?("${", "%{", "{{")
+          # Process this interpolation and return its value
+          process_interpolation(part, options)
+        else
+          part
+        end
+      end
+
+      processed_parts.join
     end
 
     def evaluate_condition(condition_type, condition_key, options)
