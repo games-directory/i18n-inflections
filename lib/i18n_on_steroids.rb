@@ -2,6 +2,7 @@
 
 require "i18n_on_steroids/version"
 require "i18n_on_steroids/translation_helper"
+require "i18n_on_steroids/console_helpers"
 
 module I18nOnSteroids
   class Error < StandardError; end
