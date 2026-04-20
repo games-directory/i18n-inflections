@@ -24,6 +24,13 @@ module I18nOnSteroids
   end
 
   module TranslationHelper
+    # Pre-compiled regex patterns for better performance
+    INTERPOLATION_SPLIT_PATTERN = /(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/.freeze
+    DOLLAR_BRACE_PATTERN = /^\$\{([^}]+)\}$/.freeze
+    PERCENT_BRACE_PATTERN = /^%\{([^}]+)\}$/.freeze
+    DOUBLE_BRACE_PATTERN = /^\{\{([^}]+)\}\}$/.freeze
+    PARAM_INTERPOLATION_PATTERN = /^%\{([^}]+)\}$/.freeze
+
     class << self
       attr_writer :pipe_separator
 
@@ -68,7 +75,7 @@ module I18nOnSteroids
     private
 
     def process_mixed_translation(translation, options)
-      parts = translation.split(/(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/)
+      parts = translation.split(INTERPOLATION_SPLIT_PATTERN)
       processed_parts = parts.map do |part|
         if part.start_with?("${", "%{", "{{")
           process_interpolation(part, options)
@@ -82,19 +89,19 @@ module I18nOnSteroids
 
     def process_interpolation(interpolation, options)
       if interpolation.start_with?("${")
-        match_data = interpolation.match(/^\$\{([^}]+)\}$/)
+        match_data = interpolation.match(DOLLAR_BRACE_PATTERN)
         return interpolation unless match_data
 
         content = match_data[1].strip
         process_content_with_pipes(content, options)
       elsif interpolation.start_with?("%{")
-        match_data = interpolation.match(/^%\{([^}]+)\}$/)
+        match_data = interpolation.match(PERCENT_BRACE_PATTERN)
         return interpolation unless match_data
 
         content = match_data[1].strip
         process_content_with_pipes(content, options)
       elsif interpolation.start_with?("{{")
-        match_data = interpolation.match(/^\{\{([^}]+)\}\}$/)
+        match_data = interpolation.match(DOUBLE_BRACE_PATTERN)
         return interpolation unless match_data
 
         content = match_data[1].strip
@@ -171,7 +178,7 @@ module I18nOnSteroids
           when "pluralize"
             if pipe_params
               if pipe_params.start_with?("%{")
-                count_key = pipe_params.match(/^%\{([^}]+)\}$/)[1]
+                count_key = pipe_params.match(PARAM_INTERPOLATION_PATTERN)[1]
                 count = options[count_key.to_sym]
                 result.pluralize(count)
               else
