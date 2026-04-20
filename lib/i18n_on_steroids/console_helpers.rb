@@ -3,20 +3,20 @@
 module I18nOnSteroids
   module ConsoleHelpers
     def self.demo
-      puts "\n" + "=" * 80
+      puts "\n#{"=" * 80}"
       puts "I18nOnSteroids Interactive Demo"
       puts "=" * 80
 
       # Setup demo translations
       I18n.backend.store_translations(:en, {
-        demo: {
-          simple: "Hello ${name | upcase}!",
-          chained: "${text | titleize | truncate: 20}",
-          conditional: "${value | upcase if: admin}",
-          composition: "${count | pluralize: ${unit}}",
-          formatting: "${price | currency: €} on ${date | date_format: %B %d, %Y}"
-        }
-      })
+                                        demo: {
+                                          simple: "Hello ${name | upcase}!",
+                                          chained: "${text | titleize | truncate: 20}",
+                                          conditional: "${value | upcase if: admin}",
+                                          composition: "${count | pluralize: ${unit}}",
+                                          formatting: "${price | currency: €} on ${date | date_format: %B %d, %Y}"
+                                        }
+                                      })
 
       include TranslationHelper
 
@@ -63,13 +63,13 @@ module I18nOnSteroids
         puts "   Result: #{translate(demo[:key].to_sym, **demo[:opts])}"
       end
 
-      puts "\n" + "=" * 80
+      puts "\n#{"=" * 80}"
       puts "Available Commands:"
       puts "  I18nOnSteroids.demo              # Show this demo"
       puts "  I18nOnSteroids.test_pipe         # Test a pipe interactively"
       puts "  I18nOnSteroids.list_pipes        # List all available pipes"
       puts "  I18nOnSteroids.pipe_info(name)   # Show info about a pipe"
-      puts "=" * 80 + "\n"
+      puts "#{"=" * 80}\n"
     end
 
     def self.test_pipe(pipe_name = nil, value = nil)
@@ -93,8 +93,8 @@ module I18nOnSteroids
       puts "-" * 80
 
       I18n.backend.store_translations(:en, {
-        test: "Result: ${value | #{pipe_name}}"
-      })
+                                        test: "Result: ${value | #{pipe_name}}"
+                                      })
 
       begin
         result = translate(:test, value: value)
@@ -135,7 +135,7 @@ module I18nOnSteroids
       end
 
       puts "\n💡 Tip: Use I18nOnSteroids.pipe_info(:pipe_name) for details"
-      puts "=" * 80 + "\n"
+      puts "#{"=" * 80}\n"
     end
 
     def self.pipe_info(pipe_name)
@@ -186,22 +186,18 @@ module I18nOnSteroids
           format: "\${value | format: %.2f}"
         }
 
-        if examples[pipe_name.to_sym]
-          puts "\nExample: #{examples[pipe_name.to_sym]}"
-        end
+        puts "\nExample: #{examples[pipe_name.to_sym]}" if examples[pipe_name.to_sym]
 
         # Check for aliases
         aliases = TranslationHelper.pipe_aliases.select { |_, target| target == pipe_name.to_s }
-        if aliases.any?
-          puts "\nAliases: #{aliases.keys.join(', ')}"
-        end
+        puts "\nAliases: #{aliases.keys.join(", ")}" if aliases.any?
 
       else
         puts "\nNo documentation available for '#{pipe_name}'"
         puts "\nUse I18nOnSteroids.list_pipes to see all available pipes"
       end
 
-      puts "=" * 80 + "\n"
+      puts "#{"=" * 80}\n"
     end
   end
 

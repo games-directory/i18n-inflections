@@ -5,7 +5,7 @@ require "bundler/setup"
 require "i18n_on_steroids"
 
 # Welcome message
-puts "\n" + "=" * 80
+puts "\n#{"=" * 80}"
 puts "Welcome to I18nOnSteroids Console!"
 puts "=" * 80
 puts "\n💡 Quick Start Commands:"
@@ -13,7 +13,7 @@ puts "  I18nOnSteroids.demo              # Interactive demo of features"
 puts "  I18nOnSteroids.list_pipes        # Show all available pipes"
 puts "  I18nOnSteroids.pipe_info(:upcase) # Get info about a specific pipe"
 puts "  I18nOnSteroids.test_pipe(:upcase, 'hello')  # Test a pipe"
-puts "\n" + "=" * 80 + "\n"
+puts "\n#{"=" * 80}\n"
 
 require "irb"
 IRB.start(__FILE__)

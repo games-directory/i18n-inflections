@@ -29,9 +29,9 @@ class TestNewFeatures < Minitest::Test
 
   def test_parameterize_pipe
     I18n.backend.store_translations(:en, {
-      parameterize_default: "${title | parameterize}",
-      parameterize_custom: "${title | parameterize: _}"
-    })
+                                      parameterize_default: "${title | parameterize}",
+                                      parameterize_custom: "${title | parameterize: _}"
+                                    })
     assert_equal "hello-world", translate(:parameterize_default, title: "Hello World!")
     assert_equal "hello_world", translate(:parameterize_custom, title: "Hello World!")
   end
@@ -48,19 +48,19 @@ class TestNewFeatures < Minitest::Test
 
   def test_currency_pipe
     I18n.backend.store_translations(:en, {
-      currency_default: "${price | currency}",
-      currency_euro: "${price | currency: €}"
-    })
+                                      currency_default: "${price | currency}",
+                                      currency_euro: "${price | currency: €}"
+                                    })
     result = translate(:currency_default, price: 1234.56)
-    assert result.include?("1"), "Currency output should include formatted number"
-    assert result.include?("234"), "Currency output should include thousands separator"
+    assert_includes result, "1", "Currency output should include formatted number"
+    assert_includes result, "234", "Currency output should include thousands separator"
   end
 
   def test_date_format_pipe
     I18n.backend.store_translations(:en, {
-      date_default: "${date | date_format}",
-      date_custom: "${date | date_format: %B %d, %Y}"
-    })
+                                      date_default: "${date | date_format}",
+                                      date_custom: "${date | date_format: %B %d, %Y}"
+                                    })
     date = Date.new(2024, 1, 15)
     assert_equal "2024-01-15", translate(:date_default, date: date)
     assert_equal "January 15, 2024", translate(:date_custom, date: date)
@@ -68,9 +68,9 @@ class TestNewFeatures < Minitest::Test
 
   def test_time_format_pipe
     I18n.backend.store_translations(:en, {
-      time_default: "${time | time_format}",
-      time_custom: "${time | time_format: %H:%M}"
-    })
+                                      time_default: "${time | time_format}",
+                                      time_custom: "${time | time_format: %H:%M}"
+                                    })
     time = Time.new(2024, 1, 15, 14, 30, 45)
     assert_equal "14:30:45", translate(:time_default, time: time)
     assert_equal "14:30", translate(:time_custom, time: time)
@@ -78,9 +78,9 @@ class TestNewFeatures < Minitest::Test
 
   def test_default_pipe
     I18n.backend.store_translations(:en, {
-      default_empty: "${value | default: Unknown}",
-      default_present: "${value | default: N/A}"
-    })
+                                      default_empty: "${value | default: Unknown}",
+                                      default_present: "${value | default: N/A}"
+                                    })
     assert_equal "Unknown", translate(:default_empty, value: "")
     assert_equal "exists", translate(:default_present, value: "exists")
   end
@@ -89,9 +89,9 @@ class TestNewFeatures < Minitest::Test
 
   def test_pipe_aliases
     I18n.backend.store_translations(:en, {
-      trim_test: "${text | trim: 10}",
-      limit_test: "${text | limit: 10}"
-    })
+                                      trim_test: "${text | trim: 10}",
+                                      limit_test: "${text | limit: 10}"
+                                    })
     assert_equal "Hello W...", translate(:trim_test, text: "Hello World")
     assert_equal "Hello W...", translate(:limit_test, text: "Hello World")
   end
@@ -120,8 +120,8 @@ class TestNewFeatures < Minitest::Test
 
   def test_conditional_with_parameters
     I18n.backend.store_translations(:en, {
-      conditional_param: "${text | truncate: 10 if: mobile}"
-    })
+                                      conditional_param: "${text | truncate: 10 if: mobile}"
+                                    })
     assert_equal "Hello W...", translate(:conditional_param, text: "Hello World", mobile: true)
     assert_equal "Hello World", translate(:conditional_param, text: "Hello World", mobile: false)
   end
@@ -130,8 +130,8 @@ class TestNewFeatures < Minitest::Test
 
   def test_pipe_composition_simple
     I18n.backend.store_translations(:en, {
-      composition: "${count | pluralize: ${unit}}"
-    })
+                                      composition: "${count | pluralize: ${unit}}"
+                                    })
     result1 = translate(:composition, count: 5, unit: "item")
     result2 = translate(:composition, count: 1, unit: "item")
 
@@ -143,11 +143,11 @@ class TestNewFeatures < Minitest::Test
 
   def test_pipe_composition_currency
     I18n.backend.store_translations(:en, {
-      dynamic_currency: "${amount | currency: ${symbol}}"
-    })
+                                      dynamic_currency: "${amount | currency: ${symbol}}"
+                                    })
     result = translate(:dynamic_currency, amount: 99.99, symbol: "€")
     # Composition should interpolate the symbol
-    assert result.include?("99"), "Should include amount"
+    assert_includes result, "99", "Should include amount"
   end
 
   def test_pipe_composition_multiple
@@ -223,22 +223,22 @@ class TestNewFeatures < Minitest::Test
 
   def test_complex_pipe_chain
     I18n.backend.store_translations(:en, {
-      complex: "${text | strip | titleize | truncate: 20}"
-    })
+                                      complex: "${text | strip | titleize | truncate: 20}"
+                                    })
     result = translate(:complex, text: "  hello world from ruby  ")
     assert result.start_with?("Hello World From"), "Should titleize and truncate"
-    assert result.include?("..."), "Should have ellipsis"
+    assert_includes result, "...", "Should have ellipsis"
   end
 
   def test_conditional_in_chain
     I18n.backend.store_translations(:en, {
-      chain_conditional: "${text | titleize if: format | truncate: 15}"
-    })
+                                      chain_conditional: "${text | titleize if: format | truncate: 15}"
+                                    })
     result_with = translate(:chain_conditional, text: "hello world from ruby", format: true)
     result_without = translate(:chain_conditional, text: "hello world from ruby", format: false)
 
     assert result_with.start_with?("Hello"), "Should titleize when condition true"
-    assert result_with.include?("..."), "Should truncate"
+    assert_includes result_with, "...", "Should truncate"
     assert result_without.start_with?("hello"), "Should not titleize when condition false"
   end
 
@@ -254,22 +254,22 @@ class TestNewFeatures < Minitest::Test
 
   def test_multiple_conditions
     I18n.backend.store_translations(:en, {
-      multi_cond: "${value | upcase if: admin | truncate: 10 unless: mobile}"
-    })
+                                      multi_cond: "${value | upcase if: admin | truncate: 10 unless: mobile}"
+                                    })
     result1 = translate(:multi_cond, value: "secret data", admin: true, mobile: false)
     result2 = translate(:multi_cond, value: "secret data", admin: true, mobile: true)
     result3 = translate(:multi_cond, value: "secret data", admin: false, mobile: false)
 
     # admin=true, mobile=false: upcase yes, truncate yes
     assert result1.start_with?("SECRET"), "Should upcase when admin=true"
-    assert result1.include?("..."), "Should truncate when mobile=false"
+    assert_includes result1, "...", "Should truncate when mobile=false"
 
     # admin=true, mobile=true: upcase yes, truncate no (because unless mobile)
     assert_equal "SECRET DATA", result2, "Should upcase but not truncate when admin=true and mobile=true"
 
     # admin=false, mobile=false: upcase no, truncate yes (because unless mobile is false)
     assert result3.start_with?("secret"), "Should not upcase when admin=false"
-    assert result3.include?("..."), "Should truncate when mobile=false"
+    assert_includes result3, "...", "Should truncate when mobile=false"
   end
 
   def test_cache_effectiveness
@@ -281,7 +281,7 @@ class TestNewFeatures < Minitest::Test
     # Second call - should use cache
     result = translate(:cache_test, value: "different value")
     assert result.start_with?("DIFFERE"), "Should start with DIFFERE"
-    assert result.include?("..."), "Should have ellipsis"
+    assert_includes result, "...", "Should have ellipsis"
   end
 
   def test_cache_clearing

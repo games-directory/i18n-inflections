@@ -29,11 +29,11 @@ module I18nOnSteroids
 
   module TranslationHelper
     # Pre-compiled regex patterns for better performance
-    INTERPOLATION_SPLIT_PATTERN = /(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/.freeze
-    DOLLAR_BRACE_PATTERN = /^\$\{([^}]+)\}$/.freeze
-    PERCENT_BRACE_PATTERN = /^%\{([^}]+)\}$/.freeze
-    DOUBLE_BRACE_PATTERN = /^\{\{([^}]+)\}\}$/.freeze
-    PARAM_INTERPOLATION_PATTERN = /^%\{([^}]+)\}$/.freeze
+    INTERPOLATION_SPLIT_PATTERN = /(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/
+    DOLLAR_BRACE_PATTERN = /^\$\{([^}]+)\}$/
+    PERCENT_BRACE_PATTERN = /^%\{([^}]+)\}$/
+    DOUBLE_BRACE_PATTERN = /^\{\{([^}]+)\}\}$/
+    PARAM_INTERPOLATION_PATTERN = /^%\{([^}]+)\}$/
 
     class << self
       def custom_pipes
@@ -191,42 +191,40 @@ module I18nOnSteroids
 
     def parse_pipes(pipe_segments)
       # Create cache key from pipe segments and separator
-      cache_key = "#{pipe_segments.join('|')}:#{TranslationHelper.pipe_separator}"
+      cache_key = "#{pipe_segments.join("|")}:#{TranslationHelper.pipe_separator}"
 
       # Return cached result if available
-      TranslationHelper.pipe_cache[cache_key] ||= begin
-        pipe_segments.map do |segment|
-          # Extract conditional (if/unless) if present
-          condition_type = nil
-          condition_key = nil
+      TranslationHelper.pipe_cache[cache_key] ||= pipe_segments.map do |segment|
+        # Extract conditional (if/unless) if present
+        condition_type = nil
+        condition_key = nil
 
-          if segment.include?(" if:")
-            parts = segment.split(" if:", 2)
-            segment = parts[0]
-            condition_type = :if
-            condition_key = parts[1]&.strip
-          elsif segment.include?(" unless:")
-            parts = segment.split(" unless:", 2)
-            segment = parts[0]
-            condition_type = :unless
-            condition_key = parts[1]&.strip
-          end
-
-          # Parse pipe name and parameters
-          pipe_parts = segment.split(":", 2)
-          name = pipe_parts[0].strip
-          params = pipe_parts[1]&.strip
-
-          pipe_info = { name: name, params: params }
-
-          # Add condition info if present
-          if condition_type
-            pipe_info[:condition_type] = condition_type
-            pipe_info[:condition_key] = condition_key
-          end
-
-          pipe_info
+        if segment.include?(" if:")
+          parts = segment.split(" if:", 2)
+          segment = parts[0]
+          condition_type = :if
+          condition_key = parts[1]&.strip
+        elsif segment.include?(" unless:")
+          parts = segment.split(" unless:", 2)
+          segment = parts[0]
+          condition_type = :unless
+          condition_key = parts[1]&.strip
         end
+
+        # Parse pipe name and parameters
+        pipe_parts = segment.split(":", 2)
+        name = pipe_parts[0].strip
+        params = pipe_parts[1]&.strip
+
+        pipe_info = { name: name, params: params }
+
+        # Add condition info if present
+        if condition_type
+          pipe_info[:condition_type] = condition_type
+          pipe_info[:condition_key] = condition_key
+        end
+
+        pipe_info
       end
     end
 
@@ -360,7 +358,7 @@ module I18nOnSteroids
           transformed
         rescue StandardError => e
           # Re-raise if it's an intentional error from handle_unknown_pipe
-          raise if e.message.start_with?("Unknown pipe") || e.message.start_with?("Error applying pipe")
+          raise if e.message.start_with?("Unknown pipe", "Error applying pipe")
 
           handle_pipe_error(pipe_name, e, result)
         end
@@ -407,7 +405,7 @@ module I18nOnSteroids
       if should_raise
         available = TranslationHelper.available_pipes
         all_pipes = available[:built_in] + available[:custom]
-        raise "Unknown pipe ':#{pipe_name}'. Available pipes: #{all_pipes.join(', ')}"
+        raise "Unknown pipe ':#{pipe_name}'. Available pipes: #{all_pipes.join(", ")}"
       end
 
       debug_log "Unknown pipe '#{pipe_name}' ignored, returning original value"
@@ -417,9 +415,7 @@ module I18nOnSteroids
     def handle_pipe_error(pipe_name, error, result)
       config = I18nOnSteroids.configuration
 
-      if config.strict_mode
-        raise "Error applying pipe ':#{pipe_name}': #{error.message}"
-      end
+      raise "Error applying pipe ':#{pipe_name}': #{error.message}" if config.strict_mode
 
       debug_log "Error in pipe '#{pipe_name}': #{error.message}, returning original value"
       result

@@ -8,13 +8,13 @@ require "i18n_on_steroids"
 
 # Setup I18n
 I18n.backend.store_translations(:en, {
-  simple: "Hello %{name}",
-  with_pipes: "Hello ${name | upcase}",
-  multiple_pipes: "User: ${name | titleize | truncate: 20}",
-  conditional: "Status: ${status | upcase if: admin}",
-  composition: "${count | pluralize: ${unit}}",
-  complex: "${created_at | date_format: %Y-%m-%d} - ${title | titleize | truncate: 50}"
-})
+                                  simple: "Hello %{name}",
+                                  with_pipes: "Hello ${name | upcase}",
+                                  multiple_pipes: "User: ${name | titleize | truncate: 20}",
+                                  conditional: "Status: ${status | upcase if: admin}",
+                                  composition: "${count | pluralize: ${unit}}",
+                                  complex: "${created_at | date_format: %Y-%m-%d} - ${title | titleize | truncate: 50}"
+                                })
 
 # Include translation helper
 include I18nOnSteroids::TranslationHelper
