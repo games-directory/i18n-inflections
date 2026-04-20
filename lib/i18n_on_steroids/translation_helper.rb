@@ -63,7 +63,10 @@ module I18nOnSteroids
       end
 
       def available_pipes
-        built_in = %w[number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format]
+        built_in = %w[
+          number_with_delimiter pluralize truncate round upcase downcase capitalize html_safe format
+          titleize humanize parameterize strip squish
+        ]
         custom = custom_pipes.keys
 
         {
@@ -243,6 +246,17 @@ module I18nOnSteroids
                           when "format"
                             format_str = pipe_params || "%s"
                             format(format_str, result)
+                          when "titleize"
+                            result.to_s.titleize
+                          when "humanize"
+                            result.to_s.humanize
+                          when "parameterize"
+                            separator = pipe_params || "-"
+                            result.to_s.parameterize(separator: separator)
+                          when "strip"
+                            result.to_s.strip
+                          when "squish"
+                            result.to_s.squish
                           else
                             handle_unknown_pipe(pipe_name, result)
                           end
