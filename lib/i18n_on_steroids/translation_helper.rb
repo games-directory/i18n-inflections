@@ -27,6 +27,8 @@ module I18nOnSteroids
     yield(configuration)
   end
 
+  # rubocop:disable Metrics/ModuleLength
+  # This module contains all pipe implementations and helper methods
   module TranslationHelper
     # Pre-compiled regex patterns for better performance
     INTERPOLATION_SPLIT_PATTERN = /(\$\{[^}]+\}|%\{[^}]+\}|\{\{[^}]+\}\})/
@@ -238,6 +240,8 @@ module I18nOnSteroids
       apply_pipes(string, pipes, {})
     end
 
+    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
+    # This method handles all built-in pipes in a single case statement for performance
     def apply_pipes(value, pipes, options)
       # Lazy evaluation: return immediately if no pipes to apply
       return value if pipes.empty?
@@ -364,6 +368,7 @@ module I18nOnSteroids
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
 
     def process_param_interpolations(param_string, options)
       return param_string unless param_string
@@ -421,4 +426,5 @@ module I18nOnSteroids
       result
     end
   end
+  # rubocop:enable Metrics/ModuleLength
 end

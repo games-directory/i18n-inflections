@@ -2,6 +2,8 @@
 
 require "test_helper"
 
+# rubocop:disable Metrics/ClassLength
+# Comprehensive test suite for all new features added in v1.0.0
 class TestNewFeatures < Minitest::Test
   include ActionView::Helpers::NumberHelper
   include I18nOnSteroids::TranslationHelper
@@ -297,3 +299,4 @@ class TestNewFeatures < Minitest::Test
     assert_equal "WORLD", translate(:clear_test, value: "world")
   end
 end
+# rubocop:enable Metrics/ClassLength

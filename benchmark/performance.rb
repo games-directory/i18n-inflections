@@ -16,8 +16,8 @@ I18n.backend.store_translations(:en, {
                                   complex: "${created_at | date_format: %Y-%m-%d} - ${title | titleize | truncate: 50}"
                                 })
 
-# Include translation helper
-include I18nOnSteroids::TranslationHelper
+# Include translation helper at top level for benchmarking
+include I18nOnSteroids::TranslationHelper # rubocop:disable Style/MixinUsage
 
 puts "=" * 80
 puts "I18nOnSteroids Performance Benchmarks"
